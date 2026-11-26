@@ -99,7 +99,7 @@ $('question').addEventListener('submit',async event=>{
   try {
     const s=await load();
     if(!s) throw Error('The data could not be checked.');
-    let verified;
+    let verified, answerTowns;
     if(/\b(house|home|insurance|coastal|tidal|road closure)\b/i.test(question)) verified='This is outside the Flood Plan. Refer the question to the council’s Area Office.';
     else if(/study|permanent wall|most events/i.test(question)) verified=study(s.history);
     else if(/what if/i.test(question)){
@@ -115,16 +115,30 @@ $('question').addEventListener('submit',async event=>{
     else {
       const town=s.towns.find(t=>question.toLowerCase().includes(t.town.toLowerCase()));
       if(!town && !/tonight|plan|crew/i.test(question)) verified='The tool can answer questions about tonight’s plan, a named town, flow what-ifs, or the flood-defence study.';
-      else verified=(town?[town]:s.towns).map(t=>t.town+': '+(t.effective===null?'Pending':levels[t.effective])+'. '+reason(t)+' · p95 '+fmt(t.p95)+', p99 '+fmt(t.p99)+' m³/s.'+(t.crew?' Crew: '+t.crew+'.':t.level===2?' Barriers requested but '+(t.entry.barrier_sets?'no eligible crew slot.':'no barrier set.')+' Apply Standby measures and flag to the Area Manager.':'')).join('\n');
+      else verified=(answerTowns=town?[town]:s.towns).map(t=>t.town+': '+(t.effective===null?'Pending':levels[t.effective])+'. '+reason(t)+' · p95 '+fmt(t.p95)+', p99 '+fmt(t.p99)+' m³/s.'+(t.crew?' Crew: '+t.crew+'.':t.level===2?' Barriers requested but '+(t.entry.barrier_sets?'no eligible crew slot.':'no barrier set.')+' Apply Standby measures and flag to the Area Manager.':'')).join('\n');
     }
-    $('answer').textContent=verified;
+    const answer = $('answer');
+    if (answerTowns) {
+      answer.innerHTML = '<h3>Plan results</h3><ul class="answer-towns">'+answerTowns.map(t=>{
+        const level=t.effective===null?'Pending':levels[t.effective];
+        const action=t.crew?'Crew: '+t.crew : t.level===2?'Standby measures · Flag to Area Manager' : '';
+        return '<li><div class="title-line"><strong>'+esc(t.town)+'</strong><span class="badge '+level.toLowerCase()+'">'+level+'</span></div>'+
+          '<p>'+esc(reason(t))+'</p><p class="muted">p95 '+fmt(t.p95)+' · p99 '+fmt(t.p99)+' m³/s</p>'+
+          (action?'<p>'+esc(action)+'</p>':'')+'</li>';
+      }).join('')+'</ul>';
+    } else answer.textContent=verified;
     if(backend){
       try{
         const r=await fetch(backend+'/explain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,verified}),signal:AbortSignal.timeout(20000)});
         if(!r.ok) throw Error();
         const x=await r.json();
-        $('answer').textContent+='\n\n'+x.answer+'\nOpenAI '+x.model+' · '+x.input+' input / '+x.output+' billed output tokens';
-      }catch{ $('answer').textContent+='\n\nOpenAI explanation unavailable.'; }
+        const panel=document.createElement('section');
+        panel.className='answer-ai';
+        panel.innerHTML='<h3>AI explanation</h3>'+x.answer.trim().split(/\n+/).map(block=>
+          '<p>'+esc(block).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+'</p>').join('')+
+          '<p class="answer-usage">'+esc('OpenAI '+x.model+' · '+x.input+' input / '+x.output+' billed output tokens')+'</p>';
+        answer.append(panel);
+      }catch{ answer.insertAdjacentHTML("beforeend", '<p class="answer-ai">OpenAI explanation unavailable.</p>'); }
     }
   }catch(error){ $('answer').textContent=error.message; }
   finally{button.disabled=false;}

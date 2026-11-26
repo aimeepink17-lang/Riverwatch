@@ -65,8 +65,8 @@ function reason(t){
 function rank(history){return [...history].sort((a,b)=>b.eventTotal-a.eventTotal||a.town.localeCompare(b.town));}
 function study(history) {
   const sorted=rank(history), leaders=sorted.filter(t=>t.eventTotal===sorted[0].eventTotal);
-  return leaders.map(t=>t.town+' recorded '+t.eventTotal+' events. First four winters: '+t.firstFour+'. Last four: '+t.lastFour+' ('+(t.lastFour>t.firstFour?'more':t.lastFour<t.firstFour?'fewer':'same')+').').join(' ')+
-    (leaders.length>1?' The towns are tied on event count.':'')+' Event counts cannot show damage or existing defences. Ennis’s modelled discharge has a local validation caveat.';
+  return leaders.map(t=>t.town+' recorded '+t.eventTotal+' events. 2016/17–2019/20: '+t.firstFour+' events. 2021/22–2024/25: '+t.lastFour+' ('+(t.lastFour>t.firstFour?'more':t.lastFour<t.firstFour?'fewer':'same')+').').join(' ')+
+    (leaders.length>1?' The towns are tied on event count.':'')+' The nine-winter total includes 2020/21. The four-winter comparison leaves it out. Event counts cannot show damage or existing defences. Ennis’s modelled discharge has a local validation caveat.';
 }
 function render(snapshot,problems){
   const {towns,history,now}=snapshot;
@@ -76,7 +76,7 @@ function render(snapshot,problems){
   $('counts').hidden=!towns.length;
   $('towns').innerHTML=towns.length?towns.map(renderTown).join(''):'<div class="card">Town recommendations will appear once the live Team Sheet is accessible.</div>';
   $('crew-list').innerHTML=towns.length?['Clonmel','Mallow','Athlone'].map(crew=>'<article class="card"><h3>'+crew+'</h3><p>'+esc(towns.filter(t=>t.crew===crew).map(t=>t.town).join(', ')||'No barrier assignment')+'</p></article>').join(''):'<p class="muted">Crew assignments require the live Sheet.</p>';
-  $('history-detail').innerHTML='<div class="card"><p>'+esc(study(history))+'</p><div class="table-wrap"><table><thead><tr><th>Town</th><th>p95 m³/s</th><th>p99 m³/s</th><th>Events</th><th>First four</th><th>Last four</th></tr></thead><tbody>'+rank(history).map(t=>'<tr><th scope="row">'+esc(t.town)+'</th><td>'+fmt(t.p95)+'</td><td>'+fmt(t.p99)+'</td><td>'+t.eventTotal+'</td><td>'+t.firstFour+'</td><td>'+t.lastFour+'</td></tr>').join('')+'</tbody></table></div></div>';
+  $('history-detail').innerHTML='<div class="card"><p>'+esc(study(history))+'</p><div class="table-wrap"><table><thead><tr><th>Town</th><th>p95 m³/s</th><th>p99 m³/s</th><th>All nine winters</th><th>2016/17–2019/20</th><th>2021/22–2024/25</th></tr></thead><tbody>'+rank(history).map(t=>'<tr><th scope="row">'+esc(t.town)+'</th><td>'+fmt(t.p95)+'</td><td>'+fmt(t.p99)+'</td><td>'+t.eventTotal+'</td><td>'+t.firstFour+'</td><td>'+t.lastFour+'</td></tr>').join('')+'</tbody></table></div></div>';
 }
 function renderTown(t){
   const name=t.effective===null?'Pending':levels[t.effective];

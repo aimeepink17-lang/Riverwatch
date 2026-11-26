@@ -105,7 +105,9 @@ $('question').addEventListener('submit',async event=>{
     else if(/what if/i.test(question)){
       const town=s.history.find(t=>question.toLowerCase().includes(t.town.toLowerCase()))??(/\bsuir\b/i.test(question)?s.history[0]:null);
       const flow=question.match(/(\d+(?:\.\d+)?)\s*m(?:³|3)\s*\/\s*s/i);
-      if(!s.sheet||!town||!flow) verified='A what-if needs the live Sheet, a town and a flow in m³/s.';
+      if(!town) verified='Name the town for the what-if.';
+      else if(!flow) verified='Please give the proposed flow for '+town.town+' in m³/s.';
+      else if(!s.sheet) verified='The live Team Sheet is unavailable, so the what-if cannot be confirmed.';
       else {
         const sheet=s.sheet.map(t=>t.town===town.town?{...t,flow_override_m3s:flow[1]}:t);
         const t=plan(s.history,sheet,s.forecasts??s.history.map(()=>null),s.warnings,s.now).find(t=>t.town===town.town);

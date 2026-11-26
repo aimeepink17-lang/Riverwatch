@@ -1,0 +1,15 @@
+name = "river-watch-ca2"
+main = "worker.mjs"
+compatibility_date = "2026-11-26"
+
+[vars]
+SITE_ORIGIN = "https://aimeepink17-lang.github.io"
+
+[[durable_objects.bindings]]
+name = "USAGE"
+class_name = "UsageCounter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["UsageCounter"]
+

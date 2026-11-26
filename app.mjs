@@ -1,7 +1,7 @@
 import { plan, readSheet, levels, townsToCounties } from './plan.mjs';
 
 const sheetId = '131JVvZgwZlpoWD2xL7hGprbRnEASKf1lR6ZFa2-V-MM';
-const backend = ''; // Set to the deployed River Watch relay URL.
+const backend = 'https://riverwatch.aimeepink17.workers.dev';
 const $ = id => document.getElementById(id);
 const fmt = n => n === null ? 'Unavailable' : new Intl.NumberFormat('en-IE', { maximumFractionDigits: 2 }).format(n);
 const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

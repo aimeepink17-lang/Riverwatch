@@ -100,7 +100,7 @@ $('question').addEventListener('submit',async event=>{
     const s=await load();
     if(!s) throw Error('The data could not be checked.');
     let verified, answerTowns;
-    if(/\b(house|home|insurance|coastal|tidal|road closure)\b/i.test(question)) verified='This is outside the Flood Plan. Refer the question to the council’s Area Office.';
+    if(/\b(houses?|homes?|property|properties|address(?:es)?|dwellings?|insurance|coastal|tidal|roads?\s+(?:closures?|closed)|closed\s+roads?)\b/i.test(question)) verified='This is outside the Flood Plan. Refer the question to the council’s Area Office.';
     else if(/study|permanent wall|most events/i.test(question)) verified=study(s.history);
     else if(/what if/i.test(question)){
       const town=s.history.find(t=>question.toLowerCase().includes(t.town.toLowerCase()))??(/\bsuir\b/i.test(question)?s.history[0]:null);

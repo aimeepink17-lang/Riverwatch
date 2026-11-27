@@ -1,4 +1,4 @@
-import { plan, readSheet, levels, townsToCounties, proposedFlow } from './plan.mjs';
+import { plan, readSheet, levels, townsToCounties, proposedFlow } from './plan.mjs?v=5';
 
 const sheetId = '131JVvZgwZlpoWD2xL7hGprbRnEASKf1lR6ZFa2-V-MM';
 const backend = 'https://riverwatch.aimeepink17.workers.dev';

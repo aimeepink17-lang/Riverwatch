@@ -1,4 +1,4 @@
-import { plan, readSheet, levels, townsToCounties } from './plan.mjs';
+import { plan, readSheet, levels, townsToCounties, proposedFlow } from './plan.mjs';
 
 const sheetId = '131JVvZgwZlpoWD2xL7hGprbRnEASKf1lR6ZFa2-V-MM';
 const backend = 'https://riverwatch.aimeepink17.workers.dev';
@@ -104,12 +104,12 @@ $('question').addEventListener('submit',async event=>{
     else if(/study|permanent wall|most events/i.test(question)) verified=study(s.history);
     else if(/what if/i.test(question)){
       const town=s.history.find(t=>question.toLowerCase().includes(t.town.toLowerCase()))??(/\bsuir\b/i.test(question)?s.history[0]:null);
-      const flow=question.match(/(\d+(?:\.\d+)?)\s*m(?:³|3)\s*\/\s*s/i);
+      const flow=proposedFlow(question);
       if(!town) verified='Name the town for the what-if.';
-      else if(!flow) verified='Please give the proposed flow for '+town.town+' in m³/s.';
+      else if(flow===null) verified='Enter a non-negative flow for '+town.town+'. For example: What if '+town.town+' reaches 150? River flow is in m³/s.';
       else if(!s.sheet) verified='The live Team Sheet is unavailable, so the what-if cannot be confirmed.';
       else {
-        const sheet=s.sheet.map(t=>t.town===town.town?{...t,flow_override_m3s:flow[1]}:t);
+        const sheet=s.sheet.map(t=>t.town===town.town?{...t,flow_override_m3s:String(flow)}:t);
         const t=plan(s.history,sheet,s.forecasts??s.history.map(()=>null),s.warnings,s.now).find(t=>t.town===town.town);
         verified='What-if for '+t.town+' · '+reason(t)+' · '+levels[t.effective]+'.'+(t.crew?' Crew: '+t.crew+'.':t.level===2?' Apply Standby measures and flag to Area Manager.':'')+(s.warnings===null?' Official warning check unavailable; result provisional.':'');
       }
@@ -129,7 +129,7 @@ $('question').addEventListener('submit',async event=>{
           (action?'<p>'+esc(action)+'</p>':'')+'</li>';
       }).join('')+'</ul>';
     } else answer.textContent=verified;
-    if(backend){
+    if(backend && !verified.startsWith('Enter a non-negative flow')){
       try{
         const r=await fetch(backend+'/explain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,verified}),signal:AbortSignal.timeout(20000)});
         if(!r.ok) throw Error();

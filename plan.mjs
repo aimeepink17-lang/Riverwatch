@@ -85,3 +85,11 @@ export function plan(history, sheet, forecasts, feed, now) {
   assigned.forEach((t,i) => { if (t) t.crew = slots[i]; });
   return result.map(t => ({ ...t, effective: t.level === 2 && !t.crew ? 1 : t.level }));
 }
+
+export function proposedFlow(question) {
+  const text = question.normalize('NFKC').replace(/\u2212/g, '-');
+  const explicit = text.match(/(?<![\d.:+\-])([+-]?\d+(?:\.\d+)?)\s*(?:m\s*3\s*(?:\/\s*s|s|per\s+second)|cubic\s+met(?:res|ers)\s+per\s+second)\b/i);
+  const plain = text.match(/\b(?:reach(?:es|ed)?|rise(?:s)?\s+to|hits?|at)\s+([+-]?\d+(?:\.\d+)?)\s*[?!.]*\s*$/i);
+  const value = Number((explicit ?? plain)?.[1]);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}

@@ -99,7 +99,7 @@ $('question').addEventListener('submit',async event=>{
   try {
     const s=await load();
     if(!s) throw Error('The data could not be checked.');
-    let verified, answerTowns;
+    let verified, answerTowns, unsupported = false;
     if(/\b(houses?|homes?|property|properties|address(?:es)?|dwellings?|insurance|coastal|tidal|roads?\s+(?:closures?|closed)|closed\s+roads?)\b/i.test(question)) verified='This is outside the Flood Plan. Refer the question to the council’s Area Office.';
     else if(/study|permanent wall|most events/i.test(question)) verified=study(s.history);
     else if(/what if/i.test(question)){
@@ -113,6 +113,9 @@ $('question').addEventListener('submit',async event=>{
         const t=plan(s.history,sheet,s.forecasts??s.history.map(()=>null),s.warnings,s.now).find(t=>t.town===town.town);
         verified='What-if for '+t.town+' · '+reason(t)+' · '+levels[t.effective]+'.'+(t.crew?' Crew: '+t.crew+'.':t.level===2?' Apply Standby measures and flag to Area Manager.':'')+(s.warnings===null?' Official warning check unavailable; result provisional.':'');
       }
+    } else if(!/^(?:what(?:['’]s| is) tonight['’]s plan|(?:show|give)(?: me)? tonight['’]s plan|where (?:should|do) (?:the )?crews go|why is .+ (?:at that level|normal|on standby|at barriers)|what (?:is|are) (?:the )?(?:flood |river )?(?:level|status|forecast|thresholds?|peak flow) (?:in|for) .+)[?.!]*$/i.test(question)){
+      unsupported = true;
+      verified='That question is outside River Watch’s scope. Ask about tonight’s flood plan, a town’s flood status, a flow what-if, or the flood-defence study.';
     } else if(!s.sheet) verified='The live Team Sheet is unavailable, so the plan cannot be confirmed.';
     else {
       const town=s.towns.find(t=>question.toLowerCase().includes(t.town.toLowerCase()));
@@ -129,7 +132,7 @@ $('question').addEventListener('submit',async event=>{
           (action?'<p>'+esc(action)+'</p>':'')+'</li>';
       }).join('')+'</ul>';
     } else answer.textContent=verified;
-    if(backend && !verified.startsWith('Enter a non-negative flow')){
+    if(backend && !unsupported && !verified.startsWith('Enter a non-negative flow')){
       try{
         const r=await fetch(backend+'/explain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,verified}),signal:AbortSignal.timeout(20000)});
         if(!r.ok) throw Error();
